@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node.js and Next.js
+node_modules/
+.next/
+out/
+dist/
+npm-debug.log*
+.eslintcache
+
+# Uploaded documents and local data
+uploads/
+data/
+*.pdf
+
+# IDE and operating system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local test artifacts
+coverage/
+test-results/
+playwright-report/
