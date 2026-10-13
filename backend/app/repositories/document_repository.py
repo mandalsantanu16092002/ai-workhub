@@ -1,70 +1,57 @@
-from uuid import UUID
+import uuid
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.document import Document, DocumentChunk
+from app.models.document import Document, DocumentStatus
 
 
-class DocumentRepository:
-    """Database operations for documents and their chunks."""
+def create(
+    db: Session,
+    *,
+    document_id: uuid.UUID,
+    filename: str,
+    content_type: str,
+    file_size: int,
+    stored_path: str,
+    status: DocumentStatus,
+) -> Document:
+    document = Document(
+        id=document_id,
+        filename=filename,
+        content_type=content_type,
+        file_size=file_size,
+        stored_path=stored_path,
+        status=status,
+    )
+    db.add(document)
+    db.commit()
+    db.refresh(document)
+    return document
 
-    def create(
-        self,
-        db: Session,
-        document: Document,
-    ) -> Document:
-        db.add(document)
-        db.commit()
-        db.refresh(document)
-        return document
 
-    def get_by_id(
-        self,
-        db: Session,
-        document_id: UUID,
-    ) -> Document | None:
-        statement = select(Document).where(
-            Document.id == document_id
-        )
-        return db.scalar(statement)
+def get_by_id(
+    db: Session,
+    document_id: uuid.UUID,
+) -> Document | None:
+    return db.get(Document, document_id)
 
-    def list_documents(
-        self,
-        db: Session,
-        skip: int = 0,
-        limit: int = 20,
-    ) -> tuple[list[Document], int]:
-        statement = (
-            select(Document)
-            .order_by(Document.created_at.desc())
-            .offset(skip)
-            .limit(limit)
-        )
-        documents = list(db.scalars(statement).all())
 
-        count_statement = select(func.count()).select_from(Document)
-        total = db.scalar(count_statement) or 0
+def list_documents(
+    db: Session,
+    *,
+    limit: int,
+    offset: int,
+) -> list[Document]:
+    stmt = (
+        select(Document)
+        .order_by(Document.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    return list(db.scalars(stmt))
 
-        return documents, total
 
-    def delete(
-        self,
-        db: Session,
-        document: Document,
-    ) -> None:
-        db.delete(document)
-        db.commit()
-
-    def add_chunks(
-        self,
-        db: Session,
-        chunks: list[DocumentChunk],
-    ) -> list[DocumentChunk]:
-        db.add_all(chunks)
-        db.commit()
-
-        for chunk in chunks:
-            db.refresh(chunk)
-
-        return chunks
+def delete(db: Session, document: Document) -> None:
+    db.delete(document)
+    db.commit()

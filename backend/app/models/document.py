@@ -63,6 +63,20 @@ class Document(Base):
         nullable=False,
     )
 
+    page_count: Mapped[int | None] = mapped_column(
+    Integer,
+    nullable=True,
+    )
+    error_message: Mapped[str | None] = mapped_column(
+    Text,
+    nullable=True,
+    )
+
+    summary: Mapped[str | None] = mapped_column(
+    Text,
+    nullable=True,
+    )
+
     status: Mapped[DocumentStatus] = mapped_column(
         Enum(
             DocumentStatus,
@@ -127,6 +141,11 @@ class DocumentChunk(Base):
     chunk_index: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
+    )
+
+    page_number: Mapped[int | None] = mapped_column(
+    Integer,
+    nullable=True,
     )
 
     content: Mapped[str] = mapped_column(

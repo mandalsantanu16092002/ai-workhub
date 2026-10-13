@@ -8,7 +8,6 @@ from app.api import documents, health
 from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
 
-
 logging.basicConfig(level=logging.INFO)
 
 settings = get_settings()

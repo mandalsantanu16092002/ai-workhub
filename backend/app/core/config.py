@@ -4,12 +4,17 @@ from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+
 class Settings(BaseSettings):
     app_name: str = "AI WorkHub API"
     app_version: str = "0.1.0"
     environment: str = "development"
     cors_origins: list[str] = ["http://localhost:3000"]
     database_url: str
+
+    storage_dir: str = "storage"
+    max_upload_mb: int = 10
+    max_pages: int = 300
 
     model_config = SettingsConfigDict(
         env_file=".env",

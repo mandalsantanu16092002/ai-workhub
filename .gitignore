@@ -33,3 +33,23 @@ Thumbs.db
 coverage/
 test-results/
 playwright-report/
+
+# Uploaded documents and local storage
+storage/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Frontend
+node_modules/
+.next/
+
+# Uploaded documents
+backend/storage/
