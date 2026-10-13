@@ -1,18 +1,35 @@
+
 import re
 import unicodedata
 
-_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
-_HYPHEN_AT_LINE_END = re.compile(r"(\w)-\n(\w)")
-_SPACES_AND_TABS = re.compile(r"[ \t]+")
-_MANY_BLANK_LINES = re.compile(r"\n{3,}")
-
 
 def clean_text(text: str) -> str:
+    """Normalize extracted PDF text while preserving useful paragraph breaks."""
+    if not text:
+        return ""
+
+    # Normalize Unicode characters.
     text = unicodedata.normalize("NFKC", text)
+
+    # Join words split across lines by PDF extraction.
+    text = re.sub(r"(?<=\w)-[ \t]*\n[ \t]*(?=\w)", "", text)
+
+    # Normalize Windows and old-style line endings.
     text = text.replace("\r\n", "\n").replace("\r", "\n")
-    text = _CONTROL_CHARS.sub("", text)
-    text = _HYPHEN_AT_LINE_END.sub(r"\1\2", text)
-    text = _SPACES_AND_TABS.sub(" ", text)
-    text = "\n".join(line.strip() for line in text.splitlines())
-    text = _MANY_BLANK_LINES.sub("\n\n", text)
+
+    # Remove control characters, but preserve line breaks and tabs for now.
+    text = "".join(
+        char for char in text
+        if char in "\n\t" or unicodedata.category(char) != "Cc"
+    )
+
+    # Normalize horizontal whitespace.
+    text = re.sub(r"[^\S\n]+", " ", text)
+
+    # Remove whitespace around paragraph breaks.
+    text = re.sub(r" *\n *", "\n", text)
+
+    # Collapse excessive blank lines.
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
     return text.strip()

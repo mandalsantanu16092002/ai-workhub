@@ -14,6 +14,10 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.schemas.document import DocumentRead
 from app.services import document_service, processing_service
+from app.ai import get_ai_provider
+from app.ai.base import AIProvider
+from app.schemas.qa import AskRequest, AskResponse
+from app.services import qa_service
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -68,3 +72,17 @@ def delete_document(
     db: Session = Depends(get_db),
 ):
     document_service.delete_document(db, document_id)
+
+@router.post("/{document_id}/ask", response_model=AskResponse)
+def ask_document(
+    document_id: uuid.UUID,
+    payload: AskRequest,
+    db: Session = Depends(get_db),
+    provider: AIProvider = Depends(get_ai_provider),
+):
+    return qa_service.ask_question(
+        db,
+        document_id,
+        payload.question,
+        provider,
+    )

@@ -1,9 +1,11 @@
+
 import uuid
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.document import Document, DocumentStatus
+
 
 
 def create(
@@ -24,10 +26,13 @@ def create(
         stored_path=stored_path,
         status=status,
     )
+
     db.add(document)
     db.commit()
     db.refresh(document)
+
     return document
+
 
 
 def get_by_id(
@@ -36,22 +41,51 @@ def get_by_id(
 ) -> Document | None:
     return db.get(Document, document_id)
 
+def get(
+    db: Session,
+    document_id: uuid.UUID,
+) -> Document | None:
+    return get_by_id(db, document_id)
+
+
 
 def list_documents(
     db: Session,
     *,
-    limit: int,
-    offset: int,
+    limit: int = 50,
+    offset: int = 0,
 ) -> list[Document]:
-    stmt = (
+    statement = (
         select(Document)
         .order_by(Document.created_at.desc())
-        .limit(limit)
         .offset(offset)
+        .limit(limit)
     )
-    return list(db.scalars(stmt))
+    return list(db.scalars(statement).all())
+
 
 
 def delete(db: Session, document: Document) -> None:
     db.delete(document)
+    db.commit()
+
+
+def update_processing_result(
+    db: Session,
+    document: Document,
+    *,
+    status: DocumentStatus,
+    page_count: int | None = None,
+    error_message: str | None = None,
+    embedding_model: str | None = None,
+) -> None:
+    document.status = status.value
+
+    if page_count is not None:
+        document.page_count = page_count
+
+    if embedding_model is not None:
+        document.embedding_model = embedding_model
+
+    document.error_message = error_message
     db.commit()

@@ -3,6 +3,7 @@ import enum
 import uuid
 from datetime import datetime
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     CheckConstraint,
     DateTime,
@@ -17,6 +18,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.config import EMBEDDING_DIMENSIONS
 from app.db.base import Base
 
 
@@ -64,17 +66,24 @@ class Document(Base):
     )
 
     page_count: Mapped[int | None] = mapped_column(
-    Integer,
-    nullable=True,
+        Integer,
+        nullable=True,
     )
+
     error_message: Mapped[str | None] = mapped_column(
-    Text,
-    nullable=True,
+        Text,
+        nullable=True,
     )
 
     summary: Mapped[str | None] = mapped_column(
-    Text,
-    nullable=True,
+        Text,
+        nullable=True,
+    )
+
+    # Identifies the embedding model used to index this document.
+    embedding_model: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
     )
 
     status: Mapped[DocumentStatus] = mapped_column(
@@ -144,13 +153,19 @@ class DocumentChunk(Base):
     )
 
     page_number: Mapped[int | None] = mapped_column(
-    Integer,
-    nullable=True,
+        Integer,
+        nullable=True,
     )
 
     content: Mapped[str] = mapped_column(
         Text,
         nullable=False,
+    )
+
+    # Nullable so existing chunks survive migration before re-indexing.
+    embedding: Mapped[list[float] | None] = mapped_column(
+        Vector(EMBEDDING_DIMENSIONS),
+        nullable=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(
